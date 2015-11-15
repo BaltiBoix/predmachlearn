@@ -1,0 +1,130 @@
+---
+title: "Practical Machine Learning Project Assignment"
+author: "Balti Boix"
+date: "7 de noviembre de 2015"
+output: html_document
+---
+
+###Source
+
+Qualitative Activity Recognition of Weight Lifting Exercises
+Velloso, E.; Bulling, A.; Gellersen, H.; Ugulino, W.; Fuks, H. Qualitative Activity Recognition of Weight Lifting Exercises. Proceedings of 4th Augmented Human (AH) International Conference in cooperation with ACM SIGCHI (Augmented Human'13) . Stuttgart, Germany: ACM SIGCHI, 2013. 
+Cited by 15 (Google Scholar)
+
+Read more: http://groupware.les.inf.puc-rio.br/work.jsf?p1=11201#ixzz3qpR558zc
+
+
+###Goal
+
+The goal of your project is to predict the manner in which they did the exercise. This is the "classe" variable in the training set. You may use any of the other variables to predict with. You should create a report describing how you built your model, how you used cross validation, what you think the expected out of sample error is, and why you made the choices you did. You will also use your prediction model to predict 20 different test cases. 
+
+###Discussion of results
+I have not been able to find a description of the data set variables on the Internet. I can guess that it consist in time series grouped in windows that should be analized together. But as the test data correspond to independent rows I have decided to consider the same in the training set. A summary of the training data is on the appendix. 
+
+If we want to find a model that can be used to check if a person is doing his/her exercises correctly seems clear that variables like user_name or date should not be used. As it seems that the test data has been extracted from the time series these variables are very significant in the models. To show it **fit1** model uses only this type of information (cols 2:7) and gets a perfect match!
+
+In models **fit** and **fit0** the cols that are basically NA's have been removed. Cols 2:7 are also removed. Cross-Validation with k=3 have been used as resampling method. The default resampling method takes too long to solve in my PC. In Fit0 the data set is not preprocessed. In **fit1** preProcess="pca" have been used.
+
+At the three fits a perfect match is attained on the training data.
+
+The prediction over the test data give the same results except for **fit** in the third row (incorrect in submission part of the assigment and been correct the result with **fit0** and **fit1**).  
+
+
+####Loading and Processing the Raw Data
+
+The training and test csv files are downloaded from the Course Web into R working directory.
+From there are read directly into Data frames using the file header as column names.
+
+```{r cache=TRUE}
+download.file("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv", "pml-training.csv")
+download.file("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv", "pml-testing.csv")
+Origtraindf<-read.table("pml-training.csv", sep = ",", header = TRUE, na.strings = c("NA", "", "#DIV/0!"))
+Origtestdf<-read.table("pml-testing.csv", sep = ",", header = TRUE, na.strings = c("NA", "", "#DIV/0!"))
+```
+
+R Packages used for analysis and plotting are loaded if required.
+The number of rows and columns are shown.
+
+```{r message=FALSE, warning=FALSE}
+require(dplyr, quietly = TRUE)
+require(ggplot2, quietly = TRUE)
+require(caret, quietly = TRUE)
+require(rpart, quietly = TRUE)
+require(randomForest, quietly = TRUE)
+require(gbm, quietly = TRUE)
+require(foreach, quietly = TRUE)
+require(doParallel, quietly = TRUE)
+
+if(file.exists("my_fit.rda") & !exists("fit")) load("my_fit.rda")
+if(file.exists("my_fit0.rda") & !exists("fit0")) load("my_fit0.rda")
+if(file.exists("my_fit1.rda") & !exists("fit1")) load("my_fit1.rda")
+
+data.frame(dim(Origtraindf), dim(Origtestdf))
+```
+
+First obvious cols like X (equivalent a number of row), user name, time_stamps and windows are removed.  
+Then the cols (variables) that have more than 80% of values different from NA are determined and selected. 
+Or what is the same, the cols with more tan 80% of NA's are removed.
+
+```{r message=FALSE, warning=FALSE}
+filtervars<-names(Origtraindf)
+filtervars<-filtervars[8:length(filtervars)]
+traindf<-select(Origtraindf, one_of(filtervars))
+filtervars<-names(traindf[, colSums(!is.na(traindf)) > 0.8*nrow(traindf)])
+traindf<-select(traindf, one_of(filtervars))
+```
+
+Models **fit**, **fit0** and **fit1** are generated and the statistics are shown using the function confusionMatrix 
+
+```{r message=FALSE, warning=FALSE}
+if(!exists("fit")) {
+      fit<-train(classe ~ ., method= "rf", trControl = trainControl(method = "cv", number = 3), 
+                 preProcess="pca", data = traindf)
+      save(fit, file="my_fit.rda")}
+
+confusionMatrix(traindf$classe, predict(fit, Origtraindf))
+
+if(!exists("fit0")) {
+      fit0<-train(classe ~ ., method= "rf", trControl = trainControl(method = "cv", number = 3), 
+                 data = traindf)
+      save(fit0, file="my_fit0.rda")}
+
+confusionMatrix(traindf$classe, predict(fit0, Origtraindf))
+
+if(!exists("fit1")) {
+      traindf<- Origtraindf[,2:7]
+      fit1<-train(classe ~ ., method= "rf", trControl = trainControl(method = "cv", number = 3), 
+                 data = traindf)
+      save(fit1, file="my_fit1.rda")}
+
+confusionMatrix(traindf$classe, predict(fit1, Origtraindf))
+```
+
+Applying the models to the test data and grouped and shown in the **resdf** data frame.
+
+```{r message=FALSE, warning=FALSE}
+resdf<-data.frame(classe0=predict(fit0, Origtestdf), classe=predict(fit, Origtestdf), classe1=predict(fit1, Origtestdf))
+resdf
+```
+
+The files for the submission assignment are printed with the function suggested in the Coursera project page.
+
+```{r message=FALSE, warning=FALSE}
+pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0("problem_id_",i,".txt")
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+
+pml_write_files(as.vector(resdf$classe0))
+```
+
+### Appendix
+
+A summary of the training data set is presented.
+
+```{r message=FALSE, warning=FALSE}
+summary(Origtraindf)
+```
