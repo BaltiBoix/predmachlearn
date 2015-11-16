@@ -5,14 +5,29 @@ date: "7 de noviembre de 2015"
 output: html_document
 ---
 
+###The Weight Lifting Exercises Dataset Description
+
+This human activity recognition research has focused on "how (well)" an activity was performed by the wearer. 
+
+Six young health participants were asked to perform one set of 10 repetitions of the Unilateral Dumbbell Biceps Curl in five different fashions: 
+
+      exactly according to the specification (Class A), 
+      throwing the elbows to the front (Class B), 
+      lifting the dumbbell only halfway (Class C), 
+      lowering the dumbbell only halfway (Class D) and 
+      throwing the hips to the front (Class E).
+
+Class A corresponds to the specified execution of the exercise, while the other 4 classes correspond to common mistakes.
+
 ###Source
 
 Qualitative Activity Recognition of Weight Lifting Exercises
 Velloso, E.; Bulling, A.; Gellersen, H.; Ugulino, W.; Fuks, H. Qualitative Activity Recognition of Weight Lifting Exercises. Proceedings of 4th Augmented Human (AH) International Conference in cooperation with ACM SIGCHI (Augmented Human'13) . Stuttgart, Germany: ACM SIGCHI, 2013. 
 Cited by 15 (Google Scholar)
 
-Read more: http://groupware.les.inf.puc-rio.br/work.jsf?p1=11201#ixzz3qpR558zc
-
+Read more: 
+      http://groupware.les.inf.puc-rio.br/work.jsf?p1=11201#ixzz3qpR558zc
+      http://groupware.les.inf.puc-rio.br/har
 
 ###Goal
 
