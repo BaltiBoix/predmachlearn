@@ -67,10 +67,21 @@ img {
 </div>
 
 
+<div id="the-weight-lifting-exercises-dataset-description" class="section level3">
+<h3>The Weight Lifting Exercises Dataset Description</h3>
+<p>This human activity recognition research has focused on “how (well)” an activity was performed by the wearer.</p>
+<p>Six young health participants were asked to perform one set of 10 repetitions of the Unilateral Dumbbell Biceps Curl in five different fashions:</p>
+<pre><code>  exactly according to the specification (Class A), 
+  throwing the elbows to the front (Class B), 
+  lifting the dumbbell only halfway (Class C), 
+  lowering the dumbbell only halfway (Class D) and 
+  throwing the hips to the front (Class E).</code></pre>
+<p>Class A corresponds to the specified execution of the exercise, while the other 4 classes correspond to common mistakes.</p>
+</div>
 <div id="source" class="section level3">
 <h3>Source</h3>
 <p>Qualitative Activity Recognition of Weight Lifting Exercises Velloso, E.; Bulling, A.; Gellersen, H.; Ugulino, W.; Fuks, H. Qualitative Activity Recognition of Weight Lifting Exercises. Proceedings of 4th Augmented Human (AH) International Conference in cooperation with ACM SIGCHI (Augmented Human’13) . Stuttgart, Germany: ACM SIGCHI, 2013. Cited by 15 (Google Scholar)</p>
-<p>Read more: <a href="http://groupware.les.inf.puc-rio.br/work.jsf?p1=11201#ixzz3qpR558zc" class="uri">http://groupware.les.inf.puc-rio.br/work.jsf?p1=11201#ixzz3qpR558zc</a></p>
+<p>Read more: <a href="http://groupware.les.inf.puc-rio.br/work.jsf?p1=11201#ixzz3qpR558zc" class="uri">http://groupware.les.inf.puc-rio.br/work.jsf?p1=11201#ixzz3qpR558zc</a> <a href="http://groupware.les.inf.puc-rio.br/har" class="uri">http://groupware.les.inf.puc-rio.br/har</a></p>
 </div>
 <div id="goal" class="section level3">
 <h3>Goal</h3>
@@ -81,7 +92,7 @@ img {
 <p>I have not been able to find a description of the data set variables on the Internet. I can guess that it consist in time series grouped in windows that should be analized together. But as the test data correspond to independent rows I have decided to consider the same in the training set. A summary of the training data is on the appendix.</p>
 <p>If we want to find a model that can be used to check if a person is doing his/her exercises correctly seems clear that variables like user_name or date should not be used. As it seems that the test data has been extracted from the time series these variables are very significant in the models. To show it <strong>fit1</strong> model uses only this type of information (cols 2:7) and gets a perfect match!</p>
 <p>In models <strong>fit</strong> and <strong>fit0</strong> the cols that are basically NA’s have been removed. Cols 2:7 are also removed. Cross-Validation with k=3 have been used as resampling method. The default resampling method takes too long to solve in my PC. In Fit0 the data set is not preprocessed. In <strong>fit1</strong> preProcess=“pca” have been used.</p>
-<p>At the three fits a perfect match is attained on the training data.</p>
+<p>At the three fits a perfect match is attained on the training data. The estimated out-of-sample error is very low.</p>
 <p>The prediction over the test data give the same results except for <strong>fit</strong> in the third row (incorrect in submission part of the assigment and been correct the result with <strong>fit0</strong> and <strong>fit1</strong>).</p>
 <div id="loading-and-processing-the-raw-data" class="section level4">
 <h4>Loading and Processing the Raw Data</h4>
@@ -227,6 +238,18 @@ confusionMatrix(traindf$classe, predict(fit1, Origtraindf))</code></pre>
 ## Detection Rate         0.2844   0.1935   0.1744   0.1639   0.1838
 ## Detection Prevalence   0.2844   0.1935   0.1744   0.1639   0.1838
 ## Balanced Accuracy      1.0000   1.0000   1.0000   1.0000   1.0000</code></pre>
+<p>From every model we extract the accuracy of the three folders used for resampling. The out-of-sample error is estimated from the mean accuracy.</p>
+<pre class="r"><code>accufit&lt;-data.frame(Fit=fit$resample$Accuracy, Fit0=fit0$resample$Accuracy, 
+                    Fit1=fit1$resample$Accuracy)
+accufit</code></pre>
+<pre><code>##         Fit      Fit0      Fit1
+## 1 0.9767620 0.9932732 0.9963308
+## 2 0.9709525 0.9922030 0.9801223
+## 3 0.9762997 0.9938838 0.9841003</code></pre>
+<pre class="r"><code>summarize(accufit, oos=round(1-mean(Fit),4), oos0=round(1-mean(Fit0),4), 
+          oos1=round(1-mean(Fit1),4))</code></pre>
+<pre><code>##      oos   oos0   oos1
+## 1 0.0253 0.0069 0.0131</code></pre>
 <p>Applying the models to the test data and grouped and shown in the <strong>resdf</strong> data frame.</p>
 <pre class="r"><code>resdf&lt;-data.frame(classe0=predict(fit0, Origtestdf), classe=predict(fit, Origtestdf), classe1=predict(fit1, Origtestdf))
 resdf</code></pre>

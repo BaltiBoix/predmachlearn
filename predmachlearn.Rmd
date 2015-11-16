@@ -5,14 +5,29 @@ date: "7 de noviembre de 2015"
 output: html_document
 ---
 
+###The Weight Lifting Exercises Dataset Description
+
+This human activity recognition research has focused on "how (well)" an activity was performed by the wearer. 
+
+Six young health participants were asked to perform one set of 10 repetitions of the Unilateral Dumbbell Biceps Curl in five different fashions: 
+
+      exactly according to the specification (Class A), 
+      throwing the elbows to the front (Class B), 
+      lifting the dumbbell only halfway (Class C), 
+      lowering the dumbbell only halfway (Class D) and 
+      throwing the hips to the front (Class E).
+
+Class A corresponds to the specified execution of the exercise, while the other 4 classes correspond to common mistakes.
+
 ###Source
 
 Qualitative Activity Recognition of Weight Lifting Exercises
 Velloso, E.; Bulling, A.; Gellersen, H.; Ugulino, W.; Fuks, H. Qualitative Activity Recognition of Weight Lifting Exercises. Proceedings of 4th Augmented Human (AH) International Conference in cooperation with ACM SIGCHI (Augmented Human'13) . Stuttgart, Germany: ACM SIGCHI, 2013. 
 Cited by 15 (Google Scholar)
 
-Read more: http://groupware.les.inf.puc-rio.br/work.jsf?p1=11201#ixzz3qpR558zc
-
+Read more: 
+      http://groupware.les.inf.puc-rio.br/work.jsf?p1=11201#ixzz3qpR558zc
+      http://groupware.les.inf.puc-rio.br/har
 
 ###Goal
 
@@ -25,7 +40,7 @@ If we want to find a model that can be used to check if a person is doing his/he
 
 In models **fit** and **fit0** the cols that are basically NA's have been removed. Cols 2:7 are also removed. Cross-Validation with k=3 have been used as resampling method. The default resampling method takes too long to solve in my PC. In Fit0 the data set is not preprocessed. In **fit1** preProcess="pca" have been used.
 
-At the three fits a perfect match is attained on the training data.
+At the three fits a perfect match is attained on the training data. The estimated out-of-sample error is very low.
 
 The prediction over the test data give the same results except for **fit** in the third row (incorrect in submission part of the assigment and been correct the result with **fit0** and **fit1**).  
 
@@ -98,6 +113,17 @@ if(!exists("fit1")) {
       save(fit1, file="my_fit1.rda")}
 
 confusionMatrix(traindf$classe, predict(fit1, Origtraindf))
+```
+
+From every model we extract the accuracy of the three folders used for resampling.
+The out-of-sample error is estimated from the mean accuracy.
+
+```{r message=FALSE, warning=FALSE}
+accufit<-data.frame(Fit=fit$resample$Accuracy, Fit0=fit0$resample$Accuracy, 
+                    Fit1=fit1$resample$Accuracy)
+accufit
+summarize(accufit, oos=round(1-mean(Fit),4), oos0=round(1-mean(Fit0),4), 
+          oos1=round(1-mean(Fit1),4))
 ```
 
 Applying the models to the test data and grouped and shown in the **resdf** data frame.
