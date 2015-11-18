@@ -42,7 +42,9 @@ In models **fit** and **fit0** the cols that are basically NA's have been remove
 
 At the three fits a perfect match is attained on the training data. The estimated out-of-sample error is very low.
 
-The prediction over the test data give the same results except for **fit** in the third row (incorrect in submission part of the assigment and been correct the result with **fit0** and **fit1**).  
+The prediction over the test data give the same results except for **fit** in the third row (incorrect in submission part of the assigment and been correct the result with **fit0** and **fit1**).
+
+A facet plot of the 20 most important variable of **fit0** are shown on the appendix
 
 
 ####Loading and Processing the Raw Data
@@ -60,7 +62,7 @@ Origtestdf<-read.table("pml-testing.csv", sep = ",", header = TRUE, na.strings =
 R Packages used for analysis and plotting are loaded if required.
 The number of rows and columns are shown.
 
-```{r message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE, tidy=TRUE}
 require(dplyr, quietly = TRUE)
 require(ggplot2, quietly = TRUE)
 require(caret, quietly = TRUE)
@@ -69,6 +71,7 @@ require(randomForest, quietly = TRUE)
 require(gbm, quietly = TRUE)
 require(foreach, quietly = TRUE)
 require(doParallel, quietly = TRUE)
+require(tidyr, quietly = TRUE)
 
 if(file.exists("my_fit.rda") & !exists("fit")) load("my_fit.rda")
 if(file.exists("my_fit0.rda") & !exists("fit0")) load("my_fit0.rda")
@@ -154,3 +157,19 @@ A summary of the training data set is presented.
 ```{r message=FALSE, warning=FALSE}
 summary(Origtraindf)
 ```
+
+A facet plot of the 20 most important variable of **fit0**
+
+```{r message=FALSE, warning=FALSE}
+vi<-varImp(fit0)
+df<-data.frame(name=rownames(vi$importance), imp=vi$importance$Overall)
+df<-arrange(df, -imp)
+plotdf<-select(Origtraindf, one_of(c("classe", as.character(df$name[1:20]))))
+plotdf<-gather(plotdf, key=clave, value=valor, -classe)
+plotdf$clave<-factor(plotdf$clave, levels=as.character(df$name[1:20]))
+p<-ggplot(plotdf, aes(x=classe, y=valor, fill=classe)) 
+p<-p + geom_boxplot()
+p<-p + facet_wrap(~ clave, scales="free_y", ncol=4)
+print(p)
+```
+
